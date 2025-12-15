@@ -1,2 +1,3 @@
 venv
-./weather_replica.*
+weather_replica.db
+weather_replica.txt
