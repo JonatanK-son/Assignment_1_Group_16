@@ -75,7 +75,7 @@ class CooperativeModel(mesa.Model):
                 continue
     
             for t in agent.current_tasks:
-                print(f"{agent.custom_id} is working on Task {t.id}, Task Duration: {t.duration}")
+                print(f"{agent.custom_id} is working on Task {t.id}, Task Resources: {t.resources}, Task Duration: {t.duration}")
                 active_tasks_this_step.add(t)
     
         # --- 3. UPDATE PHASE (Decrement Time) ---
