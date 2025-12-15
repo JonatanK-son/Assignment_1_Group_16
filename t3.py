@@ -1,8 +1,7 @@
 import time
 import multiprocessing
 import re
-import os
-import requests
+
 
 FILENAME = 'pg2701.txt'
 
