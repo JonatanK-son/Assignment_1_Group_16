@@ -21,17 +21,16 @@ class WorkerAgent(mesa.Agent):
         self.color = "grey" # Default: Idle
 
     def step(self):
-        pass # Logic is handled centrally by the model for this specific scheduling task
+        pass # Logic is handled centrally by the model
 
 class CooperativeModel(mesa.Model):
     def __init__(self):
         super().__init__()
-        # Grid: 5x5 for simple visualization
         self.grid = mesa.space.MultiGrid(5, 5, False) 
         self.tasks = []
         self.step_count = 0
         
-        # 1. Create Tasks (50 tasks with random requirements)
+        # 1. Create Tasks
         for i in range(50):
             res = self.random.choice([1, 2, 3]) 
             dur = self.random.randint(5, 20)    
@@ -51,14 +50,13 @@ class CooperativeModel(mesa.Model):
 
     def step(self):
         self.step_count += 1
-        # Required Print Format
         print(f'{{"type":"get_step","step":{self.step_count}}}')
-
+    
+        # --- 1. Assign New Tasks (Scheduling) ---
         pending = [t for t in self.tasks if not t.completed and len(t.assigned_agents) < t.resources]
         
         for task in pending:
             needed = task.resources - len(task.assigned_agents)
-            
             candidates = [a for a in self.workers 
                           if len(a.current_tasks) < a.capacity 
                           and a not in task.assigned_agents]
@@ -68,39 +66,26 @@ class CooperativeModel(mesa.Model):
                     agent = candidates[i]
                     agent.current_tasks.append(task)
                     task.assigned_agents.append(agent)
-
+    
+        # --- 2. REPORTING PHASE (Print Status) ---
+        active_tasks_this_step = set() 
+        
         for agent in self.workers:
-            agent.color = "grey" 
-            
             if not agent.current_tasks:
                 continue
-
-            # Determine Agent Status
-            is_cooperating = False
-            task_ids = []
-            
+    
             for t in agent.current_tasks:
-                task_ids.append(str(t.id))
-                
-                # Check for cooperation (is the task needing > 1 person?)
-                if t.resources > 1:
-                    is_cooperating = True
-                
-                # Print Status
                 print(f"{agent.custom_id} is working on Task {t.id}, Task Duration: {t.duration}")
-
-                # Decrement Duration (Only once per task, by the 'primary' agent)
-                if agent == t.assigned_agents[0]:
-                    t.duration -= 1
-                
-                # Check Completion
-                if t.duration <= 0:
-                    t.completed = True
-            
-            # Set Color based on status
-            agent.color = "magenta" if is_cooperating else "cyan"
-            
-            # Cleanup completed tasks from agent's list
+                active_tasks_this_step.add(t)
+    
+        # --- 3. UPDATE PHASE (Decrement Time) ---
+        for task in active_tasks_this_step:
+            task.duration -= 1
+            if task.duration <= 0:
+                task.completed = True
+    
+        # --- 4. CLEANUP PHASE ---
+        for agent in self.workers:
             agent.current_tasks = [t for t in agent.current_tasks if not t.completed]
 
 # --- Visualization Function ---
@@ -119,6 +104,22 @@ def run_viz():
         labels = []
         
         for agent in model.workers:
+            # --- COLOR LOGIC (Must happen BEFORE adding to list) ---
+            if agent.current_tasks:
+                # Use the ID of the first task to generate a consistent color
+                primary_task = agent.current_tasks[0]
+                
+                if primary_task.resources > 1:
+                    # Generate a unique color based on Task ID
+                    random.seed(primary_task.id) 
+                    # Generates a hex color like #A3B2C1
+                    agent.color = "#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+                else:
+                    agent.color = "cyan" # Solo work remains cyan
+            else:
+                agent.color = "grey"
+
+            # --- GATHER DATA ---
             x_vals.append(agent.pos[0])
             y_vals.append(agent.pos[1])
             colors.append(agent.color)
@@ -130,7 +131,7 @@ def run_viz():
                 status_text = f"T:{','.join(task_list)}"
             labels.append(f"{agent.custom_id}\n(Cap {agent.capacity})\n{status_text}")
 
-        
+        # Draw the agents
         ax.scatter(x_vals, y_vals, c=colors, s=1500, edgecolors='black', alpha=0.8)
         
         for i in range(len(model.workers)):
@@ -139,8 +140,8 @@ def run_viz():
 
         ax.set_xlim(0, 4)
         ax.set_ylim(0, 4)
-        ax.set_title(f"Step {frame} | Cyan=Solo, Magenta=Coop", fontsize=12)
-        ax.axis('off') #
+        ax.set_title(f"Step {frame} | Cyan=Solo, Colored=Coop", fontsize=12)
+        ax.axis('off')
 
     anim = FuncAnimation(fig, update, frames=20, repeat=False, interval=1000)
     plt.show()
