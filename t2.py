@@ -1,6 +1,4 @@
 import mesa
-from mesa import Agent, Model
-from mesa.space import MultiGrid
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
@@ -13,7 +11,7 @@ class Task:
         self.assigned_agents = []
         self.completed = False
 
-class WorkerAgent(Agent):
+class WorkerAgent(mesa.Agent):
     def __init__(self, model, capacity, unique_id):
         super().__init__(model)
         self.custom_id = unique_id 
@@ -24,10 +22,10 @@ class WorkerAgent(Agent):
     def step(self):
         pass # Logic handled by model
 
-class CooperativeModel(Model):
+class CooperativeModel(mesa.Model):
     def __init__(self):
         super().__init__()
-        self.grid = MultiGrid(5, 5, False) # Small grid just for visualization
+        self.grid = mesa.space.MultiGrid(5, 5, False) # Small grid just for visualization
         self.tasks = []
         self.step_count = 0
         
