@@ -1,18 +1,10 @@
 import time
 import multiprocessing
 import re
-import os
-import requests
+
 
 FILENAME = 'pg2701.txt'
 
-def download_book():
-    if not os.path.exists(FILENAME):
-        print("Downloading Moby Dick...")
-        url = "https://www.gutenberg.org/cache/epub/2701/pg2701.txt"
-        r = requests.get(url)
-        with open(FILENAME, 'w', encoding='utf-8') as f:
-            f.write(r.text)
 
 def count_words(chunk):
     """Clean data and count words"""
@@ -21,7 +13,6 @@ def count_words(chunk):
     return len(clean_text.split())
 
 def main():
-    download_book()
     
     with open(FILENAME, 'r', encoding='utf-8') as f:
         text = f.read()
