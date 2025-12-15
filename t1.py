@@ -3,23 +3,20 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from mesa import Agent, Model
-from mesa.space import MultiGrid
-from mesa.datacollection import DataCollector
 
 # --- Configuration ---
 NUM_CARS = 10
 NUM_SPOTS = 5
 GRID_SIZE = 10
-MAX_STEPS = 100
+MAX_STEPS = 1000
 
-class ParkingAgent(Agent):
+class ParkingAgent(mesa.Agent):
     """A parking spot. Green if free, Covered if occupied."""
     def __init__(self, model):
         super().__init__(model)
         self.occupied = False
 
-class CarAgent(Agent):
+class CarAgent(mesa.Agent):
     """A car. Blue if searching, Red if parked."""
     def __init__(self, model):
         super().__init__(model)
@@ -62,10 +59,10 @@ class CarAgent(Agent):
         else:
             self.move()
 
-class ParkingModel(Model):
+class ParkingModel(mesa.Model):
     def __init__(self, N_cars=NUM_CARS, N_spots=NUM_SPOTS, width=GRID_SIZE, height=GRID_SIZE, seed=None):
         super().__init__(seed=seed)
-        self.grid = MultiGrid(width, height, True)
+        self.grid = mesa.space.MultiGrid(width, height, True)
         self.search_times = []
 
         # 1. Create Parking Spots (Fixed locations)
@@ -89,7 +86,7 @@ class ParkingModel(Model):
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
 
-        self.datacollector = DataCollector(
+        self.datacollector = mesa.datacollection.DataCollector(
             model_reporters={"AvgSearchSteps": lambda m: np.mean(m.search_times) if m.search_times else 0}
         )
 
