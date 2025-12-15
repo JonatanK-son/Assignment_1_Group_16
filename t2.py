@@ -143,7 +143,7 @@ def run_viz():
         ax.set_title(f"Step {frame} | Cyan=Solo, Colored=Coop", fontsize=12)
         ax.axis('off')
 
-    anim = FuncAnimation(fig, update, frames=20, repeat=False, interval=1000)
+    anim = FuncAnimation(fig, update, frames=300, repeat=False, interval=100)
     plt.show()
 
 if __name__ == "__main__":
