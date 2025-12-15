@@ -23,26 +23,35 @@ class CarAgent(mesa.Agent):
         self.parking_duration = 0
         self.steps_searching = 0
 
-    def move(self):
-        # Look for empty spots in current cell first
+    def try_to_park(self):
+        """Checks current cell for a free spot and parks if possible."""
+        # 1. Get contents of current cell
         cell_contents = self.model.grid.get_cell_list_contents([self.pos])
-        parking_spot = next((obj for obj in cell_contents if isinstance(obj, ParkingAgent) and not obj.occupied), None)
-
-        if parking_spot and not self.parked:
-            # Park here
+        
+        # 2. Find a free parking spot
+        parking_spot = next((obj for obj in cell_contents 
+                             if isinstance(obj, ParkingAgent) and not obj.occupied), None)
+   
+        if parking_spot:
             self.parked = True
             parking_spot.occupied = True
             self.parking_duration = self.random.randint(3, 5)
-            # Log the steps it took to find this spot
+            # Log successful search
             self.model.log_search_time(self.steps_searching)
             self.steps_searching = 0
-        else:
-            # Move randomly
-            possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
-            new_position = self.random.choice(possible_steps)
-            self.model.grid.move_agent(self, new_position)
-            self.steps_searching += 1
-
+            return True
+        return False
+   
+    def move(self):
+        # 1. Move randomly
+        possible_steps = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
+        new_position = self.random.choice(possible_steps)
+        self.model.grid.move_agent(self, new_position)
+        self.steps_searching += 1
+        
+        # 2. OPTIMIZATION: Check for parking immediately after arriving
+        self.try_to_park()
+   
     def step(self):
         if self.parked:
             if self.parking_duration > 0:
@@ -50,33 +59,38 @@ class CarAgent(mesa.Agent):
             else:
                 # Leave parking
                 self.parked = False
+                # Free the spot at current location
                 cell_contents = self.model.grid.get_cell_list_contents([self.pos])
                 for obj in cell_contents:
                     if isinstance(obj, ParkingAgent):
                         obj.occupied = False
-                self.move() # Move away
+                
+                # Move away immediately so we don't re-park instantly
+                self.move()
         else:
-            self.move()
+            # If not parked, check if we are currently on a spot (e.g. spawned there)
+            if not self.try_to_park():
+                # If cannot park, move
+                self.move()
 
 class ParkingModel(mesa.Model):
     def __init__(self, N_cars=NUM_CARS, N_spots=NUM_SPOTS, width=GRID_SIZE, height=GRID_SIZE, seed=None):
         super().__init__(seed=seed)
-        self.grid = mesa.space.MultiGrid(width, height, True)
+        # OPTIMIZATION: torus=False (Parking lots have walls)
+        self.grid = mesa.space.MultiGrid(width, height, torus=False)
         self.search_times = []
 
-        # 1. Create Parking Spots (Fixed locations)
+        # 1. Create Parking Spots
         for _ in range(N_spots):
             a = ParkingAgent(self)
+            # Random placement retry loop
             while True:
                 x = self.random.randrange(self.grid.width)
                 y = self.random.randrange(self.grid.height)
-                # Avoid placing two spots on same cell for simplicity
-                if self.grid.is_cell_empty((x,y)): # Checks if empty of AGENTS, might need stricter check
+                # Only place if no other AGENT (spot or car) is there yet
+                if self.grid.is_cell_empty((x,y)): 
                     self.grid.place_agent(a, (x, y))
                     break
-                # If grid is crowded, just place it (MultiGrid allows stacking)
-                self.grid.place_agent(a, (x,y))
-                break
 
         # 2. Create Cars
         for _ in range(N_cars):
