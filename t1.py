@@ -7,7 +7,7 @@ from matplotlib.animation import FuncAnimation
 NUM_CARS = 10
 NUM_SPOTS = 5
 GRID_SIZE = 10
-MAX_STEPS = 100
+MAX_STEPS = 101
 
 class ParkingAgent(mesa.Agent):
     """A parking spot. Green if free, Covered if occupied."""
