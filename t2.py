@@ -110,12 +110,9 @@ def run_viz():
                 primary_task = agent.current_tasks[0]
                 
                 if primary_task.resources > 1:
-                    # Generate a unique color based on Task ID
-                    random.seed(primary_task.id) 
-                    # Generates a hex color like #A3B2C1
                     agent.color = "magenta"
                 else:
-                    agent.color = "cyan" # Solo work remains cyan
+                    agent.color = "cyan"
             else:
                 agent.color = "grey"
 
