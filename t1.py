@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-NUM_CARS = 10
-NUM_SPOTS = 5
+NUM_CARS = 15
+NUM_SPOTS = 10
 GRID_SIZE = 10
 MAX_STEPS = 101
 
@@ -25,7 +25,7 @@ class CarAgent(mesa.Agent):
         cell_contents = self.model.grid.get_cell_list_contents([self.pos])
         
         parking_spot = next((obj for obj in cell_contents 
-                             if isinstance(obj, ParkingAgent) and not obj.occupied), None)
+        if isinstance(obj, ParkingAgent) and not obj.occupied), None)
    
         if parking_spot:
             self.parked = True
