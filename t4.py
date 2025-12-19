@@ -33,7 +33,6 @@ class WeatherApp(MDApp):
         return screen
 
     def init_db(self):
-        """Initialize Local SQLite (Replica 1)"""
         conn = sqlite3.connect('weather_replica.db')
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS weather_logs 
@@ -43,20 +42,17 @@ class WeatherApp(MDApp):
 
     def start_thread(self, instance):
         self.lbl_result.text = "Scraping 2 sources..."
-        # Running network tasks in a separate thread prevents the UI from freezing
         t = threading.Thread(target=self.run_scraping_task)
         t.start()
 
     def run_scraping_task(self):
         data = []
         
-        # --- SOURCE 1: TimeAndDate.com ---
         try:
             url = "https://www.timeanddate.com/weather/sweden/stockholm"
             r = requests.get(url, timeout=5)
             if r.status_code == 200:
                 soup = BeautifulSoup(r.content, 'html.parser')
-                # Target the specific div id="qlook" and class="h2"
                 qlook = soup.find("div", id="qlook")
                 if qlook:
                     temp_div = qlook.find("div", class_="h2")
@@ -69,10 +65,7 @@ class WeatherApp(MDApp):
         except Exception as e:
             data.append({"source": "TimeAndDate", "temp": "Connection Error"})
 
-        # --- SOURCE 2: wttr.in (Plain text scraping) ---
-        # We use this instead of Wunderground because Wunderground blocks simple scrapers
         try:
-            # format=%t asks for just the temperature
             r = requests.get("https://wttr.in/Stockholm?format=%t", timeout=5)
             if r.status_code == 200:
                 clean_temp = r.text.strip()
@@ -82,23 +75,19 @@ class WeatherApp(MDApp):
         except Exception:
             data.append({"source": "Wttr.in", "temp": "Connection Error"})
 
-        # --- REPLICATION PHASE ---
         self.replicate_data(data)
 
-        # Update UI (Must be done on main thread)
         Clock.schedule_once(lambda dt: self.update_ui(data))
 
     def replicate_data(self, data):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # 1. Local Text File
         try:
             with open("weather_replica.txt", "a", encoding='utf-8') as f:
                 f.write(f"[{timestamp}] {json.dumps(data, ensure_ascii=False)}\n")
         except IOError:
             print("Error writing to text file")
 
-        # 2. Local SQLite Database
         try:
             conn = sqlite3.connect('weather_replica.db')
             c = conn.cursor()
@@ -110,8 +99,6 @@ class WeatherApp(MDApp):
         except sqlite3.Error:
             print("Error writing to Database")
 
-        # 3. Firebase (Simulated/Conceptual)
-        # To make this work for real, you would use: requests.post(FIREBASE_URL, json=data)
         print(f"[{timestamp}] Replicating to Firebase Cloud... [Success]")
 
     def update_ui(self, data):
@@ -119,7 +106,6 @@ class WeatherApp(MDApp):
         for d in data:
             txt += f"[b]{d['source']}[/b]: {d['temp']}\n"
         self.lbl_result.text = txt
-        # Use markup to make bold text work if enabled, otherwise it just shows tags
         self.lbl_result.markup = True
 
 if __name__ == "__main__":

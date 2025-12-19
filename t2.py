@@ -3,7 +3,6 @@ import random
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-# --- Data Structures ---
 class Task:
     def __init__(self, id, duration, resources):
         self.id = id
@@ -18,10 +17,10 @@ class WorkerAgent(mesa.Agent):
         self.custom_id = unique_id 
         self.capacity = capacity
         self.current_tasks = [] 
-        self.color = "grey" # Default: Idle
+        self.color = "grey"
 
     def step(self):
-        pass # Logic is handled centrally by the model
+        pass
 
 class CooperativeModel(mesa.Model):
     def __init__(self):
@@ -30,7 +29,7 @@ class CooperativeModel(mesa.Model):
         self.tasks = []
         self.step_count = 0
         
-        # 1. Create Tasks
+        # Create Tasks
         for i in range(50):
             res = self.random.choice([1, 2, 3]) 
             dur = self.random.randint(5, 20)    
@@ -52,7 +51,6 @@ class CooperativeModel(mesa.Model):
         self.step_count += 1
         print(f'{{"type":"get_step","step":{self.step_count}}}')
     
-        # --- 1. Assign New Tasks (Scheduling) ---
         pending = [t for t in self.tasks if not t.completed and len(t.assigned_agents) < t.resources]
         
         for task in pending:
@@ -67,7 +65,6 @@ class CooperativeModel(mesa.Model):
                     agent.current_tasks.append(task)
                     task.assigned_agents.append(agent)
     
-        # --- 2. REPORTING PHASE (Print Status) ---
         active_tasks_this_step = set() 
         
         for agent in self.workers:
@@ -78,17 +75,14 @@ class CooperativeModel(mesa.Model):
                 print(f"{agent.custom_id} is working on Task {t.id}, Task Resources: {t.resources}, Task Duration: {t.duration}")
                 active_tasks_this_step.add(t)
     
-        # --- 3. UPDATE PHASE (Decrement Time) ---
         for task in active_tasks_this_step:
             task.duration -= 1
             if task.duration <= 0:
                 task.completed = True
     
-        # --- 4. CLEANUP PHASE ---
         for agent in self.workers:
             agent.current_tasks = [t for t in agent.current_tasks if not t.completed]
 
-# --- Visualization Function ---
 def run_viz():
     model = CooperativeModel()
     
@@ -104,9 +98,9 @@ def run_viz():
         labels = []
         
         for agent in model.workers:
-            # --- COLOR LOGIC (Must happen BEFORE adding to list) ---
+
             if agent.current_tasks:
-                # Use the ID of the first task to generate a consistent color
+
                 primary_task = agent.current_tasks[0]
                 
                 if primary_task.resources > 1:
@@ -116,7 +110,6 @@ def run_viz():
             else:
                 agent.color = "grey"
 
-            # --- GATHER DATA ---
             x_vals.append(agent.pos[0])
             y_vals.append(agent.pos[1])
             colors.append(agent.color)
@@ -128,7 +121,6 @@ def run_viz():
                 status_text = f"T:{','.join(task_list)}"
             labels.append(f"{agent.custom_id}\n(Cap {agent.capacity})\n{status_text}")
 
-        # Draw the agents
         ax.scatter(x_vals, y_vals, c=colors, s=1500, edgecolors='black', alpha=0.8)
         
         for i in range(len(model.workers)):
