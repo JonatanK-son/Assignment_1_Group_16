@@ -1,1 +1,1 @@
-[2025-12-15 11:57:12] [{"source": "TimeAndDate", "temp": "7 °C"}, {"source": "Wttr.in", "temp": "+7°C"}]
+[2025-12-23 10:07:50] [{"source": "TimeAndDate", "location": "Stockholm", "temp": "-2 °C", "humidity": "93%"}, {"source": "Wttr.in", "location": "Stockholm", "temp": "-1°C", "humidity": "86%"}]
