@@ -62,7 +62,6 @@ class WeatherApp(MDApp):
         return screen
 
     def init_db(self):
-        """Initialize Local SQLite Database with simplified schema"""
         try:
             conn = sqlite3.connect('weather_replica.db')
             c = conn.cursor()

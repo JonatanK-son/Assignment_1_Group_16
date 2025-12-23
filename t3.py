@@ -22,14 +22,14 @@ def main():
 
     print(f"Processing {len(lines)} lines using {n_cores} cores.\n")
 
-    # 1. Single Thread
+    # Single Thread
     start = time.time()
     res_single = [count_words(c) for c in chunks]
     total_single = sum(res_single)
     time_single = time.time() - start
     print(f"Single-Thread: {total_single} words in {time_single:.4f} sec")
 
-    # 2. Multi Thread
+    # Multi Thread
     start = time.time()
     with multiprocessing.Pool(n_cores) as pool:
         res_multi = pool.map(count_words, chunks)
