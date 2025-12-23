@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-NUM_CARS = 15
+NUM_CARS = 10
 NUM_SPOTS = 10
 GRID_SIZE = 10
 MAX_STEPS = 101
@@ -21,9 +21,7 @@ class CarAgent(mesa.Agent):
         self.steps_searching = 0
 
     def try_to_park(self):
-
-        cell_contents = self.model.grid.get_cell_list_contents([self.pos])
-        
+        cell_contents = self.model.grid.get_cell_list_contents([self.pos]) 
         parking_spot = next((obj for obj in cell_contents 
         if isinstance(obj, ParkingAgent) and not obj.occupied), None)
    
@@ -127,7 +125,7 @@ def run_simulation():
         ax.grid(True)
         if frame == 0: ax.legend(loc='upper right')
 
-    anim = FuncAnimation(fig, update, frames=MAX_STEPS, repeat=False)
+    anim = FuncAnimation(fig, update, frames=MAX_STEPS, repeat=False, interval = 50)
     plt.show()
     
     print(f"Simulation ended. Average steps to find parking: {np.mean(model.search_times):.2f}")

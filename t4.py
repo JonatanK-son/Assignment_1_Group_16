@@ -15,13 +15,12 @@ import datetime
 
 FIREBASE_URL = "https://assignment1-cd4b1-default-rtdb.europe-west1.firebasedatabase.app/weather.json"
 
+#define the UI for kivy
 class WeatherApp(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Teal"
         self.theme_cls.theme_style = "Light"
-        
         screen = MDScreen()
-        
         layout = MDBoxLayout(orientation='vertical', padding=20, spacing=10)
         
         self.lbl_title = MDLabel(
@@ -61,8 +60,9 @@ class WeatherApp(MDApp):
         self.init_db()
         return screen
 
+
+    #create Local DB if it doesnt exist.
     def init_db(self):
-        """Initialize Local SQLite Database with simplified schema"""
         try:
             conn = sqlite3.connect('weather_replica.db')
             c = conn.cursor()
@@ -80,6 +80,7 @@ class WeatherApp(MDApp):
         t = threading.Thread(target=self.run_scraping_task)
         t.start()
 
+    #Scrape the data from timeanddate and wttr, if fail default to error handling.
     def run_scraping_task(self):
         results = []
         target_city = "Stockholm"
@@ -137,6 +138,8 @@ class WeatherApp(MDApp):
     def create_error(self, source, msg):
         return {"source": source, "location": "Unknown", "temp": msg, "humidity": "-"}
 
+
+    #Save the data that is scraped to a .txt, local DB and firebase DB
     def replicate_data(self, data):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
@@ -168,6 +171,8 @@ class WeatherApp(MDApp):
         except Exception as e:
             print(f"Firebase Failed: {e}")
 
+
+    #update the UI after task is complete.
     def update_ui(self, data):
         self.lbl_status.text = "Replication Complete"
         

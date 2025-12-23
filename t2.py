@@ -36,9 +36,9 @@ class CooperativeModel(mesa.Model):
             self.tasks.append(Task(i, dur, res))
 
         configs = [
-            (2, "Agent 1", (1, 2)), 
-            (1, "Agent 2", (2, 2)), 
-            (2, "Agent 3", (3, 2))
+            (2, "Jonatan", (1, 2)), 
+            (1, "Matteus", (2, 2)), 
+            (2, "Lucas", (3, 2))
         ]
         
         self.workers = []
